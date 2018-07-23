@@ -24,6 +24,7 @@ type FriendShip interface {
 type Storage interface {
 	CreateConnection(id1 string, id2 string) error
 	ShowConnections(id string) ([]string, error)
+	CommonConnections(id1 string, id2 string) ([]string, error)
 }
 
 func NewGrouper(storage Storage) (r *Grouper) {
@@ -62,7 +63,19 @@ func (this *Grouper) ListFriends(id1 FriendId) (r []FriendId, err error) {
 	return
 }
 
-func (this *Grouper) CommonFriends(d1 FriendId, id2 FriendId) (r []FriendId, err error) {
+func (this *Grouper) CommonFriends(id1 FriendId, id2 FriendId) (r []FriendId, err error) {
+	if err = id1.Validate(); err != nil {
+		return
+	}
+	if err = id2.Validate(); err != nil {
+		return
+	}
+
+	var ids []string
+	ids, err = this.storage.CommonConnections(string(id1), string(id2))
+	for _, id := range ids {
+		r = append(r, FriendId(id))
+	}
 	return
 }
 

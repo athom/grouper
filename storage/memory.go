@@ -33,3 +33,7 @@ func (this *MemoryStorage) ShowConnections(id string) (r []string, err error) {
 	}
 	return
 }
+
+func (this *MemoryStorage) CommonConnections(id1 string, id2 string) (r []string, err error) {
+	return
+}

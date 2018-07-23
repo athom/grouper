@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/athom/goset"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )
@@ -64,6 +65,7 @@ type MysqlStorage struct {
 }
 
 func (this *MysqlStorage) CreateConnection(id1 string, id2 string) (err error) {
+	// TODO make it in a transation for the sake of consistency
 	obj1 := &RelationShip{
 		FollowerId: id1,
 		FolloweeId: id2,
@@ -104,5 +106,35 @@ func (this *MysqlStorage) ShowConnections(id string) (r []string, err error) {
 		r = append(r, u.FolloweeId)
 	}
 
+	return
+}
+
+func (this *MysqlStorage) CommonConnections(id1 string, id2 string) (r []string, err error) {
+	// TODO optimized interset via sql
+	var friends, friends1, friends2 []*RelationShip
+	this.db.Select("followee_id").Where(&RelationShip{
+		FollowerId: id1,
+		Status:     RelationShipStatuDoubleConnected,
+	}).Find(&friends1)
+	errs := this.db.GetErrors()
+	if len(errs) > 0 {
+		err = errs[0]
+		return
+	}
+
+	this.db.Select("followee_id").Where(&RelationShip{
+		FollowerId: id2,
+		Status:     RelationShipStatuDoubleConnected,
+	}).Find(&friends2)
+	errs = this.db.GetErrors()
+	if len(errs) > 0 {
+		err = errs[0]
+		return
+	}
+
+	friends = goset.Intersect(friends1, friends2).([]*RelationShip)
+	for _, u := range friends {
+		r = append(r, u.FolloweeId)
+	}
 	return
 }

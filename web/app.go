@@ -34,6 +34,7 @@ func route(controller *Controller) (r *gin.Engine) {
 		gFriends.POST("/connect", controller.makeFriendController)
 		gFriends.POST("/subscribe", controller.makeFriendController)
 		gFriends.POST("/find", controller.getFriendsController)
+		gFriends.POST("/common", controller.commonFriendsController)
 	}
 	return router
 }
