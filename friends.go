@@ -4,6 +4,10 @@ import "github.com/athom/goset"
 
 type FriendId string
 
+func (this FriendId) String() string {
+	return string(this)
+}
+
 func (this *FriendId) Validate() (err error) {
 	return
 }
@@ -11,10 +15,10 @@ func (this *FriendId) Validate() (err error) {
 type FriendShip interface {
 	MakeFriend(id1 FriendId, id2 FriendId) error
 	ListFriends(FriendId) ([]FriendId, error)
-	CommonFriends(id1 FriendId, id2 FriendId) error
+	CommonFriends(id1 FriendId, id2 FriendId) ([]FriendId, error)
 	Subscribe(fromId FriendId, toId FriendId) error
 	Block(fromId FriendId, toId FriendId) error
-	ReachableIds(id FriendId) ([]FriendId, error)
+	Receipients(id FriendId) ([]FriendId, error)
 }
 
 type Storage interface {
@@ -22,7 +26,7 @@ type Storage interface {
 	ShowConnections(id string) ([]string, error)
 }
 
-func NewGrouper(storage Storage) (r *Grouper, err error) {
+func NewGrouper(storage Storage) (r *Grouper) {
 	r = &Grouper{storage: storage}
 	return
 }
@@ -55,5 +59,21 @@ func (this *Grouper) ListFriends(id1 FriendId) (r []FriendId, err error) {
 		return FriendId(id)
 	}, []FriendId{}).([]FriendId)
 
+	return
+}
+
+func (this *Grouper) CommonFriends(d1 FriendId, id2 FriendId) (r []FriendId, err error) {
+	return
+}
+
+func (this *Grouper) Subscribe(fromId FriendId, toId FriendId) (err error) {
+	return
+}
+
+func (this *Grouper) Block(fromId FriendId, toId FriendId) (err error) {
+	return
+}
+
+func (this *Grouper) Receipients(id FriendId) (r []FriendId, err error) {
 	return
 }

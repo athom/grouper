@@ -5,5 +5,18 @@ import (
 )
 
 func main() {
-	web.Run()
+	conf := `
+{
+	"storage_type": "mysql",
+	"port": 7200,
+	"mysql_settings": {
+		"host": "localhost",
+		"port": 52401,
+		"username": "root",
+		"password": "nopassword",
+		"database": "grouper",
+	}
+}
+`
+	web.Run(conf)
 }

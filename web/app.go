@@ -1,23 +1,56 @@
 package web
 
-import "github.com/gin-gonic/gin"
+import (
+	"encoding/json"
+	"fmt"
 
-func route() (r *gin.Engine) {
+	"strings"
+
+	"github.com/DisposaBoy/JsonConfigReader"
+	"github.com/gin-gonic/gin"
+)
+
+type MySqlSettings struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	UserName string `json:"username"`
+	Password string `json:"password"`
+	Database string `json:"database"`
+}
+
+type config struct {
+	Port          int           `json:"port"`
+	StorageType   string        `json:"storage_type"`
+	MySqlSettings MySqlSettings `json:"mysql_settings"`
+}
+
+func route(controller *Controller) (r *gin.Engine) {
 	router := gin.Default()
 
 	v1 := router.Group("/v1")
 	{
 		gFriends := v1.Group("/friends")
 
-		gFriends.POST("/connect", makeFriendController)
-		gFriends.POST("/subscribe", makeFriendController)
-		gFriends.POST("/find", getFriendsController)
-
+		gFriends.POST("/connect", controller.makeFriendController)
+		gFriends.POST("/subscribe", controller.makeFriendController)
+		gFriends.POST("/find", controller.getFriendsController)
 	}
 	return router
 }
 
-func Run() {
-	r := route()
-	r.Run(":7200")
+func Run(conf string) {
+	jsonReader := JsonConfigReader.New(strings.NewReader(conf))
+	config := &config{}
+	err := json.NewDecoder(jsonReader).Decode(config)
+	if err != nil {
+		panic(err)
+	}
+
+	controller := &Controller{}
+	controller.Setup(config)
+
+	r := route(controller)
+
+	port := fmt.Sprintf(":%v", config.Port)
+	r.Run(port)
 }
