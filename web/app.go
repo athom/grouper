@@ -31,10 +31,13 @@ func route(controller *Controller) (r *gin.Engine) {
 	{
 		gFriends := v1.Group("/friends")
 
-		gFriends.POST("/connect", controller.makeFriendController)
-		gFriends.POST("/subscribe", controller.makeFriendController)
+		gFriends.POST("/connect", controller.connectController)
+		gFriends.POST("/subscribe", controller.subscribeController)
+		gFriends.POST("/block", controller.blockController)
+
 		gFriends.POST("/find", controller.getFriendsController)
 		gFriends.POST("/common", controller.commonFriendsController)
+		gFriends.POST("/recipients", controller.getRecipientsController)
 	}
 	return router
 }

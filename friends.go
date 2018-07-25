@@ -23,6 +23,7 @@ type FriendShip interface {
 
 type Storage interface {
 	CreateConnection(id1 string, id2 string) error
+	CreateSubscription(id1 string, id2 string) error
 	ShowConnections(id string) ([]string, error)
 	CommonConnections(id1 string, id2 string) ([]string, error)
 }
@@ -79,7 +80,15 @@ func (this *Grouper) CommonFriends(id1 FriendId, id2 FriendId) (r []FriendId, er
 	return
 }
 
-func (this *Grouper) Subscribe(fromId FriendId, toId FriendId) (err error) {
+func (this *Grouper) Subscribe(id1 FriendId, id2 FriendId) (err error) {
+	if err = id1.Validate(); err != nil {
+		return err
+	}
+	if err = id2.Validate(); err != nil {
+		return err
+	}
+
+	err = this.storage.CreateSubscription(string(id1), string(id2))
 	return
 }
 
@@ -88,5 +97,8 @@ func (this *Grouper) Block(fromId FriendId, toId FriendId) (err error) {
 }
 
 func (this *Grouper) Receipients(id FriendId) (r []FriendId, err error) {
+	if err = id.Validate(); err != nil {
+		return
+	}
 	return
 }

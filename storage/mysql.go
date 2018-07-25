@@ -8,14 +8,44 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// Data model spec
+// (follower, followee, is_connected, is_subscribed, is_blocked)
+//
+// - A B are disconnected:
+// 	 case1: really no relationship, empty set
+//	 case2: B blocks A (A, B, 0, 0, 1)
+//	 case3: A blocks B (B, A, 0, 0, 1)
+//   case4: A subscribe B (A, B, 0, 1, 0)
+//   case5: B subscribe A (B, A, 0, 1, 0)
+//	 case*: {case2, case3, case4, case5}*
+//
+// - A B are connected:
+// (A, B, 1, *, *) and (B, A, 1, *, *)
+//
+// - A subscribe B
+// (A, B, *, 1, *)
+//
+//  - A block B
+//	(B, A, *, *, 1)
+//
+// - connectable:
+//	 case1: empty set
+//	 case2: (A, B, 0, *, 0)
+//	 case3: (B, A, 0, *, 0)
+//	 case4: case2 and case3
+//
+// - A can receive B's update
+//	 case1: (A, B, 1, *, 0)
+//	 case2: (A, B, 0, 1, 0)
+
 const (
 	TableName = "relationship"
 )
 
 const (
-	RelationShipStatuDoubleConnected = "double_connected"
-	RelationShipStatuSubscribed      = "subscribed"
-	RelationShipStatuBlocked         = "blocked"
+	RelationShipStatuConnected  = "connected"
+	RelationShipStatuSubscribed = "subscribed"
+	RelationShipStatuBlocked    = "blocked"
 )
 
 type RelationShip struct {
@@ -23,7 +53,9 @@ type RelationShip struct {
 
 	FollowerId string `sql:"not null" gorm:"type:varchar(100);column:follower_id"`
 	FolloweeId string `sql:"not null" gorm:"type:varchar(100);column:followee_id"`
-	Status     string `sql:"not null" gorm:"type:varchar(20);index;column:status"`
+	Connected  string `sql:"not null" gorm:"type:varchar(20);default:'';column:connected"`
+	Subscribed string `sql:"not null" gorm:"type:varchar(20);default:'';column:subscribed"`
+	Blocked    string `sql:"not null" gorm:"type:varchar(20);default:'';column:blocked"`
 }
 
 func (this RelationShip) TableName() string {
@@ -64,25 +96,53 @@ type MysqlStorage struct {
 	db *gorm.DB
 }
 
+// NOTE very dangerous, only for testing purpose
+func (this *MysqlStorage) ResetData() (err error) {
+	this.db.Unscoped().Delete(&RelationShip{})
+	errs := this.db.GetErrors()
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	return
+}
+
 func (this *MysqlStorage) CreateConnection(id1 string, id2 string) (err error) {
 	// TODO make it in a transation for the sake of consistency
 	obj1 := &RelationShip{
 		FollowerId: id1,
 		FolloweeId: id2,
-		Status:     RelationShipStatuDoubleConnected,
+		Connected:  RelationShipStatuConnected,
 	}
 	obj2 := &RelationShip{
 		FollowerId: id2,
 		FolloweeId: id1,
-		Status:     RelationShipStatuDoubleConnected,
+		Connected:  RelationShipStatuConnected,
 	}
 	this.db.Create(obj1).Create(obj2)
 	errs := this.db.GetErrors()
 	if len(errs) > 0 {
-		return errs[0]
+		err = errs[0]
+		return
 	}
 
-	return nil
+	return
+}
+
+func (this *MysqlStorage) CreateSubscription(id1 string, id2 string) (err error) {
+	obj1 := &RelationShip{
+		FollowerId: id1,
+		FolloweeId: id2,
+		Connected:  RelationShipStatuSubscribed,
+	}
+
+	this.db.Create(obj1)
+	errs := this.db.GetErrors()
+	if len(errs) > 0 {
+		err = errs[0]
+		return
+	}
+
+	return
 }
 
 func (this *MysqlStorage) ShowConnections(id string) (r []string, err error) {
@@ -93,7 +153,7 @@ func (this *MysqlStorage) ShowConnections(id string) (r []string, err error) {
 	var friends []*RelationShip
 	this.db.Select("followee_id").Where(&RelationShip{
 		FollowerId: id,
-		Status:     RelationShipStatuDoubleConnected,
+		Connected:  RelationShipStatuConnected,
 	}).Find(&friends)
 
 	errs := this.db.GetErrors()
@@ -105,7 +165,6 @@ func (this *MysqlStorage) ShowConnections(id string) (r []string, err error) {
 	for _, u := range friends {
 		r = append(r, u.FolloweeId)
 	}
-
 	return
 }
 
@@ -114,7 +173,7 @@ func (this *MysqlStorage) CommonConnections(id1 string, id2 string) (r []string,
 	var friends, friends1, friends2 []*RelationShip
 	this.db.Select("followee_id").Where(&RelationShip{
 		FollowerId: id1,
-		Status:     RelationShipStatuDoubleConnected,
+		Connected:  RelationShipStatuConnected,
 	}).Find(&friends1)
 	errs := this.db.GetErrors()
 	if len(errs) > 0 {
@@ -124,7 +183,7 @@ func (this *MysqlStorage) CommonConnections(id1 string, id2 string) (r []string,
 
 	this.db.Select("followee_id").Where(&RelationShip{
 		FollowerId: id2,
-		Status:     RelationShipStatuDoubleConnected,
+		Connected:  RelationShipStatuConnected,
 	}).Find(&friends2)
 	errs = this.db.GetErrors()
 	if len(errs) > 0 {

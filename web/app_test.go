@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 
 	"github.com/athom/goset"
+	"github.com/athom/grouper/storage"
 )
 
 type FuncTestCase func(input string, url string, check func(*testing.T, []byte)) FuncTestCase
@@ -17,8 +18,35 @@ type runner struct {
 	f FuncTestCase
 }
 
+func (this *runner) resetData() {
+	s := storage.NewMysqlStorage(
+		"127.0.0.1",
+		52401,
+		"root",
+		"nopassword",
+		"grouper_test",
+	)
+	s.ResetData()
+}
+
 func (this *runner) run(t *testing.T) FuncTestCase {
-	r := route()
+	config := &config{
+		Port:        7300,
+		StorageType: `mysql`,
+		MySqlSettings: MySqlSettings{
+			Host:     "127.0.0.1",
+			Port:     52401,
+			UserName: "root",
+			Password: "nopassword",
+			Database: "grouper_test",
+		},
+	}
+
+	controller := &Controller{}
+	controller.Setup(config)
+	r := route(controller)
+	this.resetData()
+
 	this.f = func(input string, url string, check func(*testing.T, []byte)) FuncTestCase {
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", url, strings.NewReader(input))
@@ -276,11 +304,6 @@ func TestSubscribe(t *testing.T) {
   "target": "john@example.com"
 }
 `
-	input2 := `
-{
-  "email": "lisa@example.com"
-}
-`
 
 	var rr runner
 	rr.run(t)(input1, "/v1/friends/subscribe", func(t *testing.T, rsp []byte) {
@@ -292,19 +315,6 @@ func TestSubscribe(t *testing.T) {
 			t.Errorf("json unmarshal failed")
 		}
 		if !output.Success {
-			t.Errorf("got unexpected response :%v", string(rsp))
-		}
-	})(input2, "/v1/friends/find", func(t *testing.T, rsp []byte) {
-		var output struct {
-			Success bool     `json:"success"`
-			Friends []string `json:"friends"`
-			Count   int      `json:"count"`
-		}
-		err := json.Unmarshal(rsp, &output)
-		if err != nil {
-			t.Errorf("json unmarshal failed")
-		}
-		if goset.IsIncluded(output.Friends, "john@example.com") {
 			t.Errorf("got unexpected response :%v", string(rsp))
 		}
 	})

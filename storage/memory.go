@@ -26,6 +26,10 @@ func (this *MemoryStorage) CreateConnection(id1 string, id2 string) (err error) 
 	return nil
 }
 
+func (this *MemoryStorage) CreateSubscription(id1 string, id2 string) (err error) {
+	return
+}
+
 func (this *MemoryStorage) ShowConnections(id string) (r []string, err error) {
 	if v, ok := this.relationshipMap[id]; ok {
 		r = v
