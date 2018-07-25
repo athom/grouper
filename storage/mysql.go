@@ -43,9 +43,9 @@ const (
 )
 
 const (
-	RelationShipStatuConnected  = "connected"
-	RelationShipStatuSubscribed = "subscribed"
-	RelationShipStatuBlocked    = "blocked"
+	RelationShipStatusConnected  = "connected"
+	RelationShipStatusSubscribed = "subscribed"
+	RelationShipStatusBlocked    = "blocked"
 )
 
 type RelationShip struct {
@@ -59,15 +59,15 @@ type RelationShip struct {
 }
 
 func (this *RelationShip) SetConected() {
-	this.Blocked = RelationShipStatuConnected
+	this.Blocked = RelationShipStatusConnected
 }
 
 func (this *RelationShip) SetBlocked() {
-	this.Blocked = RelationShipStatuBlocked
+	this.Blocked = RelationShipStatusBlocked
 }
 
 func (this *RelationShip) SetSubscribed() {
-	this.Blocked = RelationShipStatuSubscribed
+	this.Blocked = RelationShipStatusSubscribed
 }
 
 func (this RelationShip) TableName() string {
@@ -123,12 +123,12 @@ func (this *MysqlStorage) CreateConnection(id1 string, id2 string) (err error) {
 	obj1 := &RelationShip{
 		FollowerId: id1,
 		FolloweeId: id2,
-		Connected:  RelationShipStatuConnected,
+		Connected:  RelationShipStatusConnected,
 	}
 	obj2 := &RelationShip{
 		FollowerId: id2,
 		FolloweeId: id1,
-		Connected:  RelationShipStatuConnected,
+		Connected:  RelationShipStatusConnected,
 	}
 	this.db.Create(obj1).Create(obj2)
 	errs := this.db.GetErrors()
@@ -144,7 +144,7 @@ func (this *MysqlStorage) CreateSubscription(id1 string, id2 string) (err error)
 	obj1 := &RelationShip{
 		FollowerId: id1,
 		FolloweeId: id2,
-		Connected:  RelationShipStatuSubscribed,
+		Connected:  RelationShipStatusSubscribed,
 	}
 
 	this.db.Create(obj1)
@@ -178,7 +178,7 @@ func (this *MysqlStorage) ShowConnections(id string) (r []string, err error) {
 	var friends []*RelationShip
 	this.db.Select("followee_id").Where(&RelationShip{
 		FollowerId: id,
-		Connected:  RelationShipStatuConnected,
+		Connected:  RelationShipStatusConnected,
 	}).Find(&friends)
 
 	errs := this.db.GetErrors()
@@ -198,7 +198,7 @@ func (this *MysqlStorage) CommonConnections(id1 string, id2 string) (r []string,
 	var friends, friends1, friends2 []*RelationShip
 	this.db.Select("followee_id").Where(&RelationShip{
 		FollowerId: id1,
-		Connected:  RelationShipStatuConnected,
+		Connected:  RelationShipStatusConnected,
 	}).Find(&friends1)
 	errs := this.db.GetErrors()
 	if len(errs) > 0 {
@@ -208,7 +208,7 @@ func (this *MysqlStorage) CommonConnections(id1 string, id2 string) (r []string,
 
 	this.db.Select("followee_id").Where(&RelationShip{
 		FollowerId: id2,
-		Connected:  RelationShipStatuConnected,
+		Connected:  RelationShipStatusConnected,
 	}).Find(&friends2)
 	errs = this.db.GetErrors()
 	if len(errs) > 0 {
