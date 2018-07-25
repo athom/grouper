@@ -18,7 +18,7 @@ import (
 //	Count   int      `json:"count"`
 //}
 
-type CommonFriendsRequest MakeFriendRequest
+type CommonFriendsRequest ConnectRequest
 
 type CommonFriendsOutput FindFriendsOutput
 

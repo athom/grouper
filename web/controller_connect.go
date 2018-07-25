@@ -8,12 +8,12 @@ import (
 )
 
 // Binding from JSON
-type MakeFriendRequest struct {
+type ConnectRequest struct {
 	Friends []string `json:"friends" binding:"required"`
 }
 
 func (this *Controller) connectController(c *gin.Context) {
-	var input MakeFriendRequest
+	var input ConnectRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

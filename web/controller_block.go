@@ -13,7 +13,7 @@ type BlockRequest struct {
 }
 
 func (this *Controller) blockController(c *gin.Context) {
-	var input MakeFriendRequest
+	var input ConnectRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
