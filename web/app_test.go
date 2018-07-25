@@ -402,7 +402,7 @@ func TestBlock(t *testing.T) {
 //			"kate@example.com"
 //		]
 //	}
-func TestReachableUsers(t *testing.T) {
+func TestRecipients(t *testing.T) {
 	input1 := `
 {
   "friends":
@@ -423,17 +423,14 @@ func TestReachableUsers(t *testing.T) {
 `
 	input3 := `
 {
-  "friends":
-    [
-      "tom@example.com",
-      "john@example.com"
-    ]
+  "requestor": "tom@example.com",
+  "target": "john@example.com"
 }
 `
 	input4 := `
 {
-  "requestor": "bob@example.com",
-  "target": "john@example.com"
+  "requestor": "john@example.com",
+  "target": "bob@example.com"
 }
 `
 

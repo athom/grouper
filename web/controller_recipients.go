@@ -9,7 +9,8 @@ import (
 
 // Binding from JSON
 type GetRecipientsRequest struct {
-	Friends []string `json:"friends" binding:"required"`
+	Sender string `json:"sender" binding:"required"`
+	Text   string `json:"text"`
 }
 
 type GetRecipientsOutput struct {
@@ -23,12 +24,8 @@ func (this *Controller) getRecipientsController(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if len(input.Friends) != 2 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "length of friends must be 2"})
-		return
-	}
 
-	id1 := grouper.FriendId(input.Friends[0])
+	id1 := grouper.FriendId(input.Sender)
 	ids, err := this.core.Receipients(id1)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"error": err.Error()})

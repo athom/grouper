@@ -27,6 +27,7 @@ type Storage interface {
 	BlockConnection(id1 string, id2 string) error
 	ShowConnections(id string) ([]string, error)
 	CommonConnections(id1 string, id2 string) ([]string, error)
+	GetReachableConnections(id string) ([]string, error)
 }
 
 func NewGrouper(storage Storage) (r *Grouper) {
@@ -108,6 +109,12 @@ func (this *Grouper) Block(id1 FriendId, id2 FriendId) (err error) {
 func (this *Grouper) Receipients(id FriendId) (r []FriendId, err error) {
 	if err = id.Validate(); err != nil {
 		return
+	}
+
+	var ids []string
+	ids, err = this.storage.GetReachableConnections(string(id))
+	for _, id := range ids {
+		r = append(r, FriendId(id))
 	}
 	return
 }

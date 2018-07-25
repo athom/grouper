@@ -159,9 +159,10 @@ func (this *MysqlStorage) CreateSubscription(id1 string, id2 string) (err error)
 
 func (this *MysqlStorage) BlockConnection(id1 string, id2 string) (err error) {
 	var rs RelationShip
+	// NOTE pay attention to the id order
 	this.db.FirstOrCreate(&rs, RelationShip{
-		FollowerId: id1,
-		FolloweeId: id2,
+		FollowerId: id2,
+		FolloweeId: id1,
 	})
 
 	rs.SetBlocked()
@@ -219,6 +220,20 @@ func (this *MysqlStorage) CommonConnections(id1 string, id2 string) (r []string,
 	friends = goset.Intersect(friends1, friends2).([]*RelationShip)
 	for _, u := range friends {
 		r = append(r, u.FolloweeId)
+	}
+	return
+}
+
+func (this *MysqlStorage) GetReachableConnections(id string) (r []string, err error) {
+	var rss []*RelationShip
+	this.db.Where("followee_id = ? AND  blocked != ?", id, RelationShipStatusBlocked).Find(&rss)
+	errs := this.db.GetErrors()
+	if len(errs) > 0 {
+		err = errs[0]
+		return
+	}
+	for _, u := range rss {
+		r = append(r, u.FollowerId)
 	}
 	return
 }
