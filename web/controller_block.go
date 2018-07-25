@@ -8,24 +8,18 @@ import (
 )
 
 // Binding from JSON
-type BlockRequest struct {
-	Friends []string `json:"friends" binding:"required"`
-}
+type BlockRequest SubscribeRequest
 
 func (this *Controller) blockController(c *gin.Context) {
-	var input ConnectRequest
+	var input BlockRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if len(input.Friends) != 2 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "length of friends must be 2"})
-		return
-	}
 
-	id1 := grouper.FriendId(input.Friends[0])
-	id2 := grouper.FriendId(input.Friends[1])
-	err := this.core.MakeFriend(id1, id2)
+	id1 := grouper.FriendId(input.Requestor)
+	id2 := grouper.FriendId(input.Target)
+	err := this.core.Block(id1, id2)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
 		return

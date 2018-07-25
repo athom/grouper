@@ -58,6 +58,18 @@ type RelationShip struct {
 	Blocked    string `sql:"not null" gorm:"type:varchar(20);default:'';column:blocked"`
 }
 
+func (this *RelationShip) SetConected() {
+	this.Blocked = RelationShipStatuConnected
+}
+
+func (this *RelationShip) SetBlocked() {
+	this.Blocked = RelationShipStatuBlocked
+}
+
+func (this *RelationShip) SetSubscribed() {
+	this.Blocked = RelationShipStatuSubscribed
+}
+
 func (this RelationShip) TableName() string {
 	return TableName
 }
@@ -145,11 +157,24 @@ func (this *MysqlStorage) CreateSubscription(id1 string, id2 string) (err error)
 	return
 }
 
-func (this *MysqlStorage) ShowConnections(id string) (r []string, err error) {
-	this.db.Where(&RelationShip{
-		FollowerId: id,
+func (this *MysqlStorage) BlockConnection(id1 string, id2 string) (err error) {
+	var rs RelationShip
+	this.db.FirstOrCreate(&rs, RelationShip{
+		FollowerId: id1,
+		FolloweeId: id2,
 	})
 
+	rs.SetBlocked()
+	this.db.Save(rs)
+	errs := this.db.GetErrors()
+	if len(errs) > 0 {
+		err = errs[0]
+		return
+	}
+	return
+}
+
+func (this *MysqlStorage) ShowConnections(id string) (r []string, err error) {
 	var friends []*RelationShip
 	this.db.Select("followee_id").Where(&RelationShip{
 		FollowerId: id,
