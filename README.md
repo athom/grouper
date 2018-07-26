@@ -1,5 +1,9 @@
 ## Grouper
 
+
+[![Build Status](https://api.travis-ci.org/athom/grouper.png?branch=master)](https://travis-ci.org/athom/grouper)
+
+
 ### Description
 
 This is a demo social network application for "Friends Management" purpose.
@@ -42,9 +46,22 @@ install [govendoer](https://github.com/kardianos/govendor) first, then exec
 govendor sync
 ```
 
+### Run the test
+
+#### Prepare the DB
+```$xslt
+mysql -e 'CREATE DATABASE IF NOT EXISTS grouper_test;'
+```
+
+#### Trigger test cases
+
+```$xslt
+./test.sh
+```
+
 ### Run the App
 
-#### 1. run from source code 
+#### 1. Run from source code 
 
 Go to project root, setup config in `$project_root/cmd/grouper/config.json`
 
@@ -67,3 +84,25 @@ Run server.
 ```$xslt
 go run cmd/grouper/main.go
 ```
+
+
+#### 2. Try it from demo site (temporary available)
+
+```$xslt
+curl -d '{"email": "andy@example.com"}' http://119.28.1.61:7200/v1/friends/find
+
+curl -d '{"email": "john@example.com"}' http://119.28.1.61:7200/v1/friends/find
+
+curl -d '{"friends": ["athom@example.com", "john@example.com"]}' http://119.28.1.61:7200/v1/friends/common
+```
+
+### TODO
+
+- Docker deployment
+- More storage plugins support.
+- Elegant converting between domain and storage.
+- Refactor test, data seeds and make it more readable.
+- Take care of the error messages.
+- CI
+- CD
+- Monitoring & Alerts.
