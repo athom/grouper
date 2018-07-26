@@ -77,7 +77,7 @@ func (this *runner) run(t *testing.T) FuncTestCase {
 //	{
 //		"success": true
 //	}
-func TestMakeFriends(t *testing.T) {
+func TestConnect(t *testing.T) {
 	input := `
 {
   "friends":
@@ -97,6 +97,52 @@ func TestMakeFriends(t *testing.T) {
 			t.Errorf("json unmarshal failed")
 		}
 		if !output.Success {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+	})
+}
+
+func TestConnectWhenBlockedShouldNotSuccess(t *testing.T) {
+	input1 := `
+{
+  "requestor": "andy@example.com",
+  "target": "john@example.com"
+}
+`
+	input2 := `
+{
+  "friends":
+    [
+      "andy@example.com",
+      "john@example.com"
+    ]
+}
+`
+	var rr runner
+	rr.run(t)(input1, "/v1/friends/block", func(t *testing.T, rsp []byte) {
+		var output struct {
+			Success bool `json:"success"`
+		}
+		err := json.Unmarshal(rsp, &output)
+		if err != nil {
+			t.Errorf("json unmarshal failed")
+		}
+		if !output.Success {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+	})(input2, "/v1/friends/connect", func(t *testing.T, rsp []byte) {
+		var output struct {
+			Success bool   `json:"success"`
+			Error   string `json:"error"`
+		}
+		err := json.Unmarshal(rsp, &output)
+		if err != nil {
+			t.Errorf("json unmarshal failed")
+		}
+		if output.Success {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+		if output.Error != `relationship already blocked, can not connect` {
 			t.Errorf("got unexpected response :%v", string(rsp))
 		}
 	})
@@ -320,6 +366,50 @@ func TestSubscribe(t *testing.T) {
 	})
 }
 
+func TestSubscribeShouldInsreaseRecipients(t *testing.T) {
+	input1 := `
+{
+  "requestor": "andy@example.com",
+  "target": "john@example.com"
+}
+`
+	input2 := `
+{
+	"sender":  "john@example.com",
+	"text": "Hello World! kate@example.com"
+}
+`
+
+	var rr runner
+	rr.run(t)(input1, "/v1/friends/subscribe", func(t *testing.T, rsp []byte) {
+		var output struct {
+			Success bool `json:"success"`
+		}
+		err := json.Unmarshal(rsp, &output)
+		if err != nil {
+			t.Errorf("json unmarshal failed")
+		}
+		if !output.Success {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+	})(input2, "/v1/friends/recipients", func(t *testing.T, rsp []byte) {
+		var output struct {
+			Success    bool     `json:"success"`
+			Recipients []string `json:"recipients"`
+		}
+		err := json.Unmarshal(rsp, &output)
+		if err != nil {
+			t.Errorf("json unmarshal failed")
+		}
+		if !output.Success {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+		if !goset.IsIncluded(output.Recipients, "andy@example.com") {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+	})
+}
+
 // 5. As a user, I need an API to block updates from an email address.
 //	Suppose "andy@example.com" blocks "john@example.com":
 //
@@ -348,11 +438,15 @@ func TestBlock(t *testing.T) {
 `
 	input2 := `
 {
-  "requestor": "lisa@example.com",
+  "requestor": "andy@example.com",
   "target": "john@example.com"
 }
 `
-
+	input3 := `
+{
+  "email": "john@example.com"
+}
+`
 	var rr runner
 	rr.run(t)(input1, "/v1/friends/connect", func(t *testing.T, rsp []byte) {
 		var output struct {
@@ -374,6 +468,22 @@ func TestBlock(t *testing.T) {
 			t.Errorf("json unmarshal failed")
 		}
 		if !output.Success {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+	})(input3, "/v1/friends/find", func(t *testing.T, rsp []byte) {
+		// NOTE [business domain] be blocked, be still connected as friend
+		var output struct {
+			Success bool     `json:"success"`
+			Friends []string `json:"friends"`
+		}
+		err := json.Unmarshal(rsp, &output)
+		if err != nil {
+			t.Errorf("json unmarshal failed")
+		}
+		if !output.Success {
+			t.Errorf("got unexpected response :%v", string(rsp))
+		}
+		if !goset.IsIncluded(output.Friends, "andy@example.com") {
 			t.Errorf("got unexpected response :%v", string(rsp))
 		}
 	})

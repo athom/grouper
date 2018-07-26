@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/athom/goset"
@@ -119,6 +120,17 @@ func (this *MysqlStorage) ResetData() (err error) {
 }
 
 func (this *MysqlStorage) CreateConnection(id1 string, id2 string) (err error) {
+	var rss []*RelationShip
+	this.db.Where("( followee_id = ? or followee_id = ?) AND  blocked = ?",
+		id1,
+		id2,
+		RelationShipStatusBlocked,
+	).Find(&rss)
+	if len(rss) > 0 {
+		err = errors.New("relationship already blocked, can not connect")
+		return
+	}
+
 	// TODO make it in a transation for the sake of consistency
 	obj1 := &RelationShip{
 		FollowerId: id1,

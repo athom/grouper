@@ -6,6 +6,6 @@ while sleep 1; do
     -a -not -path './tmp/*' \
     -a -not -path './vendor/*' \
     -a -not -iname '*_test.go' \
-    | entr -dr go run cmd/grouper/main.go
-#    | entr -dr ./test.sh
+    | entr -dr ./test.sh
+#    | entr -dr go run cmd/grouper/main.go
 done
