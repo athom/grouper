@@ -31,7 +31,8 @@ func (this *Controller) getRecipientsController(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"error": err.Error()})
 		return
 	}
-	var recipients []string
+
+	var recipients = make([]string, 0)
 	for _, id := range ids {
 		recipients = append(recipients, id.String())
 	}

@@ -42,7 +42,7 @@ func (this *Controller) commonFriendsController(c *gin.Context) {
 		return
 	}
 
-	var emails []string
+	var emails = make([]string, 0)
 	for _, id := range ids {
 		emails = append(emails, id.String())
 	}
