@@ -79,14 +79,22 @@ Go to project root, setup config in `$project_root/cmd/grouper/config.json`
 }
 ```
 
-Run server.
+Run server with go:
 
 ```$xslt
 go run cmd/grouper/main.go
 ```
 
+#### 2. Run via docker
 
-#### 2. Try it from demo site (temporary available)
+Go to deploy directory, make sure docker-compose is available, execute the script:
+
+```$xslt
+./run_server.sh
+``` 
+  
+
+#### 3. Try it from demo site (temporary available)
 
 ```$xslt
 curl -d '{"email": "andy@example.com"}' http://119.28.1.61:7200/v1/friends/find
@@ -98,11 +106,11 @@ curl -d '{"friends": ["athom@example.com", "john@example.com"]}' http://119.28.1
 
 ### TODO
 
-- Docker deployment
+- ~~Docker deployment~~
 - More storage plugins support.
 - Elegant converting between domain and storage.
 - Refactor test, data seeds and make it more readable.
 - Take care of the error messages.
-- CI
+- ~~CI~~
 - CD
 - Monitoring & Alerts.

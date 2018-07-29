@@ -1,0 +1,11 @@
+{
+	"storage_type": "mysql",
+	"port": 7200,
+	"mysql_settings": {
+		"host": "db", //defined in docker-compose.yml
+		"port": 3306,
+		"username": "root",
+		"password": "nopassword",
+		"database": "grouper"
+	}
+}
