@@ -101,7 +101,7 @@ curl -d '{"email": "andy@example.com"}' http://119.28.1.61:7200/v1/friends/find
 
 curl -d '{"email": "john@example.com"}' http://119.28.1.61:7200/v1/friends/find
 
-curl -d '{"friends": ["athom@example.com", "john@example.com"]}' http://119.28.1.61:7200/v1/friends/common
+curl -d '{"friends": ["andy@example.com", "john@example.com"]}' http://119.28.1.61:7200/v1/friends/common
 ```
 
 ### TODO
